@@ -1,0 +1,19 @@
+[package]
+name = "prp"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.72"
+clap = { version = "4.3.19", features = ["derive"] }
+clap_complete = "4.3.2"
+corpus = { version = "0.2.1", features = ["home", "xdg"] }
+etcetera = "0.8.0"
+indoc = "2.0.3"
+os_pipe = "1.1.4"
+regex = "1.9.1"
+symlink = "0.1.0"
+toml_edit = "0.19.14"
+which = "4.4.0"

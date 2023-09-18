@@ -125,8 +125,6 @@ pub fn main() -> anyhow::Result<()> {
     settings.set_python_path(args.python);
     settings.set_venv_name(args.name);
 
-    let mut venv = Venv::from_settings(settings)?;
-
     let command = args
         .command
         .unwrap_or(Commands::Venv(VenvCommand::default()));
@@ -135,35 +133,41 @@ pub fn main() -> anyhow::Result<()> {
     let shell_name = format!("{}", clap_shell);
     let shell = Shell::new(&shell_name)?;
 
-    match command {
-        Commands::Info => venv.print_info(),
-        Commands::Activate => shell.activate(&venv),
-        Commands::Run(cmd) => shell.run(&venv, cmd.command.as_deref(), &cmd.args)?,
-        Commands::Exec(cmd) => shell.exec(&venv, &cmd.command, &cmd.args)?,
-        Commands::Prompt => shell.prompt(&venv)?,
-        Commands::Shell(subcmd) => match subcmd.command {
-            None => shell.enter(&venv)?,
-            Some(ShellCommands::Init) => shell.init(),
-            Some(ShellCommands::Completions) => {
-                generate(
-                    clap_shell,
-                    &mut cli_command,
-                    cli_name,
-                    &mut std::io::stdout(),
-                );
-            }
-        },
-        Commands::Venv(cmd) => {
-            if cmd.delete {
-                venv.delete()?;
-            } else {
-                venv.create(cmd.fix)?;
-                if cmd.activate && venv.settings.auto_activate {
-                    shell.activate(&venv);
+    if let Commands::Executable(cmd) = command {
+        cmd.run(&settings)?;
+    } else {
+        let mut venv = Venv::from_current_dir(&settings)?;
+
+        match command {
+            Commands::Info => venv.print_info(),
+            Commands::Activate => shell.activate(&venv),
+            Commands::Run(cmd) => shell.run(&venv, cmd.command.as_deref(), &cmd.args)?,
+            Commands::Exec(cmd) => shell.exec(&venv, &cmd.command, &cmd.args)?,
+            Commands::Prompt => shell.prompt(&venv)?,
+            Commands::Shell(subcmd) => match subcmd.command {
+                None => shell.enter(&venv)?,
+                Some(ShellCommands::Init) => shell.init(),
+                Some(ShellCommands::Completions) => {
+                    generate(
+                        clap_shell,
+                        &mut cli_command,
+                        cli_name,
+                        &mut std::io::stdout(),
+                    );
                 }
-            }
-        } // Commands::Install => shell.run(&venv, "pip"),
-        Commands::Executable(cmd) => cmd.run()?,
+            },
+            Commands::Venv(cmd) => {
+                if cmd.delete {
+                    venv.delete()?;
+                } else {
+                    venv.create(cmd.fix)?;
+                    if cmd.activate && settings.auto_activate {
+                        shell.activate(&venv);
+                    }
+                }
+            } // Commands::Install => shell.run(&venv, "pip"),
+            Commands::Executable(_) => unreachable!(),
+        }
     }
 
     Ok(())

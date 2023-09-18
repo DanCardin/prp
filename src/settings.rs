@@ -13,12 +13,16 @@ pub struct Settings {
     pub project_root: Vec<String>,
     pub auto_activate: bool,
     pub python_path: PathBuf,
+
+    pub executables_path: PathBuf,
 }
 
 impl Settings {
     pub fn read(name: &str) -> anyhow::Result<Self> {
         let strategy = Xdg::new()?;
         let config_dir = strategy.config_dir().join(name);
+        let data_dir = strategy.data_dir().join(name);
+
         let config_file = config_dir.with_extension("toml");
 
         let content = read_file(&config_file);
@@ -59,6 +63,12 @@ impl Settings {
         )
         .to_path_buf();
 
+        let executables_path = document
+            .get("executables-path")
+            .and_then(|v| v.as_str())
+            .map(|v| Path::new(v).to_path_buf())
+            .unwrap_or(data_dir.join("venvs"));
+
         Ok(Self {
             name: name.to_string(),
             config_file,
@@ -67,6 +77,7 @@ impl Settings {
             project_root,
             auto_activate,
             python_path,
+            executables_path,
         })
     }
 

@@ -27,13 +27,6 @@ impl Python {
         })
     }
 
-    pub fn ensure_pip(&self) -> anyhow::Result<()> {
-        Command::new("python")
-            .args(["-m", "ensurepip", "--upgrade", "--default-pip"])
-            .output()?;
-        Ok(())
-    }
-
     fn compute_version(path: &Path) -> anyhow::Result<(String, String, String)> {
         let output = Command::new(path).args(["-V"]).output()?;
         let output = String::from_utf8(output.stdout)?;

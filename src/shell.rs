@@ -12,6 +12,8 @@ pub struct Shell {
     pub kind: String,
 }
 
+/// TODO:
+/// * Support more than just basic bash/zsh-like shells.
 impl Shell {
     pub fn new(kind: &str) -> anyhow::Result<Shell> {
         let exe_path = std::env::current_exe()?;
@@ -38,20 +40,20 @@ impl Shell {
     }
 
     pub fn activate(&self, venv: &Venv) {
-        if venv.path.exists() {
-            println!("export VIRTUAL_ENV='{}'", venv.path.to_string_lossy());
+        if venv.exists() {
+            println!("export VIRTUAL_ENV='{}'", venv.paths.path.to_string_lossy());
             println!(
                 "export PATH='{}'",
-                Shell::extend_path(&venv.scripts_path()).to_string_lossy()
+                Shell::extend_path(&venv.paths.scripts_path).to_string_lossy()
             );
         }
     }
 
     pub fn enter(&self, venv: &Venv) -> anyhow::Result<()> {
-        let path = Self::extend_path(&venv.scripts_path());
+        let path = Self::extend_path(&venv.paths.scripts_path);
         Err(anyhow::Error::from(
             Command::new(&self.kind)
-                .env("VIRTUAL_ENV", &venv.path)
+                .env("VIRTUAL_ENV", &venv.paths.path)
                 .env("PATH", path)
                 .exec(),
         ))
@@ -60,13 +62,11 @@ impl Shell {
     pub fn extend_path(path: &Path) -> OsString {
         let mut paths = vec![];
         if let Some(path_var) = std::env::var_os("PATH") {
-            if !path_var
-                .to_string_lossy()
-                .contains(&*path.to_string_lossy())
-            {
-                paths.push(path.to_path_buf());
-            }
-            paths.extend(std::env::split_paths(&path_var));
+            let existing_paths = std::env::split_paths(&path_var);
+            let existing_paths: Vec<_> = existing_paths.filter(|i| i != path).collect();
+
+            paths.push(path.to_path_buf());
+            paths.extend(existing_paths);
         } else {
             paths.push(path.to_path_buf());
         };
@@ -76,10 +76,9 @@ impl Shell {
     }
 
     pub fn run(&self, venv: &Venv, command: Option<&str>, args: &[String]) -> anyhow::Result<()> {
-        let scripts_path = venv.scripts_path();
         match command {
             Some(command) => {
-                let bin = scripts_path.join(command);
+                let bin = venv.paths.script(command);
                 if !&bin.exists() {
                     anyhow::bail!("No such command: {command}");
                 }
@@ -87,14 +86,16 @@ impl Shell {
                 let stderr = os_pipe::dup_stderr()?;
                 let mut child = Command::new(bin.to_string_lossy().as_ref())
                     .args(args)
-                    .env("VIRTUAL_ENV", &venv.path)
+                    .env("VIRTUAL_ENV", &venv.paths.path)
                     .stdout(stderr)
                     .spawn()?;
 
                 child.wait()?;
             }
             None => {
-                let scripts = scripts_path
+                let scripts = venv
+                    .paths
+                    .scripts_path
                     .read_dir()?
                     .filter_map(Result::ok)
                     .map(|f| f.file_name().to_string_lossy().to_string())
@@ -113,7 +114,7 @@ impl Shell {
         let stderr = os_pipe::dup_stderr()?;
         let mut child = Command::new(&self.kind)
             .args(args)
-            .env("VIRTUAL_ENV", &venv.path)
+            .env("VIRTUAL_ENV", &venv.paths.path)
             .stdout(stderr)
             .spawn()?;
 
@@ -123,10 +124,10 @@ impl Shell {
     }
 
     pub fn prompt(&self, venv: &Venv) -> anyhow::Result<()> {
-        let python = venv.scripts_path().join("python");
-
         Err(anyhow::Error::from(
-            Command::new(python).env("VIRTUAL_ENV", &venv.path).exec(),
+            Command::new(&venv.paths.python_path)
+                .env("VIRTUAL_ENV", &venv.paths.path)
+                .exec(),
         ))
     }
 }

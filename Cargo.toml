@@ -1,6 +1,6 @@
 [package]
 name = "prp"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -17,3 +17,15 @@ regex = "1.9.1"
 symlink = "0.1.0"
 toml_edit = "0.19.14"
 which = "4.4.0"
+
+# Posy
+shrinkwraprs = "*"
+derivative = "*"
+eyre = "*"
+once_cell = "*"
+serde = "*"
+serde_with = "*"
+tracing = "*"
+url = "*"
+pep440 = "*"
+peg = "0.8.1"

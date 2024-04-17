@@ -3,6 +3,22 @@ name = "prp"
 version = "0.1.1"
 edition = "2021"
 
+authors = ["Dan Cardin <ddcardin@gmail.com>"]
+description = "A tool for bootstrapping python virtualenvs."
+documentation = "https://github.com/DanCardin/prp"
+homepage = "https://github.com/DanCardin/prp"
+repository = "https://github.com/DanCardin/prp"
+readme = "README.md"
+keywords = [
+    "pip",
+    "python",
+    "venv",
+    "virtualenv",
+]
+categories = ["command-line-utilities"]
+license = "Apache-2.0"
+
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
@@ -19,13 +35,13 @@ toml_edit = "0.19.14"
 which = "4.4.0"
 
 # Posy
-shrinkwraprs = "*"
-derivative = "*"
-eyre = "*"
-once_cell = "*"
-serde = "*"
-serde_with = "*"
-tracing = "*"
-url = "*"
-pep440 = "*"
-peg = "0.8.1"
+# shrinkwraprs = "*"
+# derivative = "*"
+# eyre = "*"
+# once_cell = "*"
+# serde = "*"
+# serde_with = "*"
+# tracing = "*"
+# url = "*"
+# pep440 = "*"
+# peg = "0.8.1"

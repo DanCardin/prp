@@ -54,6 +54,10 @@ impl VenvPaths {
             minor = python.minor
         ))
     }
+    pub fn python_path_major(&self, python: &Python) -> PathBuf {
+        self.scripts_path
+            .join(format!("python{major}", major = python.major))
+    }
 
     pub fn python_path_minor(&self, python: &Python) -> PathBuf {
         self.scripts_path.join(format!(
@@ -161,6 +165,7 @@ impl Venv {
         }
 
         create_symlink(&python.exe_path, &self.paths.python_path)?;
+        create_symlink(&python.exe_path, &self.paths.python_path_major(&python))?;
         create_symlink(&python.exe_path, &self.paths.python_path_minor(&python))?;
         create_symlink(&python.exe_path, &self.paths.python_path_patch(&python))?;
 
